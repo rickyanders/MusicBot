@@ -15,6 +15,7 @@ import re
 import aiohttp
 import discord
 import colorlog
+import random
 
 from io import BytesIO, StringIO
 from functools import wraps
@@ -45,6 +46,8 @@ from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
 load_opus_lib()
 
 log = logging.getLogger(__name__)
+
+RANDOM_LIST = []
 
 
 class MusicBot(discord.Client):
@@ -1116,6 +1119,71 @@ class MusicBot(discord.Client):
         e.set_footer(text='Just-Some-Bots/MusicBot ({})'.format(BOTVERSION), icon_url='https://i.imgur.com/gFHBoZA.png')
         e.set_author(name=self.user.name, url='https://github.com/Just-Some-Bots/MusicBot', icon_url=self.user.avatar_url)
         return e
+
+    async def cmd_setlist(self, message, channel):
+        """
+        Usage:
+            {command_prefix}setlist
+
+        Set record to random list
+        """
+        message_content = message.content.strip().replace(self.config.command_prefix + 'setlist ', '')
+        if message_content not in RANDOM_LIST:
+            RANDOM_LIST.append(message_content)
+            return Response(message_content + ' added to the list', delete_after=35)
+        else:
+            return Response(message_content + ' already in the list', delete_after=35)
+
+    async def cmd_removelist(self, message, channel):
+        """
+        Usage:
+            {command_prefix}removelist
+
+        Remove record from random list
+        """
+        message_content = message.content.strip().replace(self.config.command_prefix + 'removelist ', '')
+        if message_content in RANDOM_LIST:
+            RANDOM_LIST.remove(message_content)
+            return Response(message_content + ' removed from the list', delete_after=35)
+        else:
+            return Response(message_content + ' not in the list', delete_after=35)
+
+    async def cmd_clearlist(self, message, channel):
+        """
+        Usage:
+            {command_prefix}clearlist
+
+        Clear random list
+        """
+        for i in range(len(RANDOM_LIST)):
+            RANDOM_LIST.pop()
+        return Response('List has been cleared', delete_after=35)
+
+    async def cmd_getlist(self, message, channel):
+        """
+        Usage:
+            {command_prefix}getlist
+
+        Get random list
+        """
+        if len(RANDOM_LIST) == 0:
+            return Response('You have an empty list', delete_after=35)
+        message_sent = 'Item(s) in the list: \n'
+
+        for i in range(len(RANDOM_LIST)):
+            message_sent = message_sent + str(i+1) + '. ' + RANDOM_LIST[i] + '\n'
+        return Response(message_sent, delete_after=35)
+
+    async def cmd_randomlist(self, message, channel):
+        """
+        Usage:
+            {command_prefix}randomlist
+
+        Return random record from list
+        """
+        if len(RANDOM_LIST) == 0:
+            return Response('You have an empty list', delete_after=35)
+        return Response('You got: ' + random.choice(RANDOM_LIST) , delete_after=180)
 
     async def cmd_resetplaylist(self, player, channel):
         """
