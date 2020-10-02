@@ -2160,40 +2160,40 @@ class MusicBot(discord.Client):
         # TODO: ignore person if they're deaf or take them out of the list or something?
         # Currently is recounted if they vote, deafen, then vote
 
-        num_voice = sum(1 for m in voice_channel.members if not (
-            m.voice.deaf or m.voice.self_deaf or m == self.user))
-        if num_voice == 0: num_voice = 1 # incase all users are deafened, to avoid divison by zero
+        # num_voice = sum(1 for m in voice_channel.members if not (
+        #     m.voice.deaf or m.voice.self_deaf or m == self.user))
+        # if num_voice == 0: num_voice = 1 # incase all users are deafened, to avoid divison by zero
 
-        num_skips = player.skip_state.add_skipper(author.id, message)
+        # num_skips = player.skip_state.add_skipper(author.id, message)
 
-        skips_remaining = min(
-            self.config.skips_required,
-            math.ceil(self.config.skip_ratio_required / (1 / num_voice))  # Number of skips from config ratio
-        ) - num_skips
+        # skips_remaining = min(
+        #     self.config.skips_required,
+        #     math.ceil(self.config.skip_ratio_required / (1 / num_voice))  # Number of skips from config ratio
+        # ) - num_skips
 
-        if skips_remaining <= 0:
-            player.skip()  # check autopause stuff here
-            # @TheerapakG: Check for pausing state in the player.py make more sense
-            return Response(
-                self.str.get('cmd-skip-reply-skipped-1', 'Your skip for `{0}` was acknowledged.\nThe vote to skip has been passed.{1}').format(
-                    current_entry.title,
-                    self.str.get('cmd-skip-reply-skipped-2', ' Next song coming up!') if player.playlist.peek() else ''
-                ),
-                reply=True,
-                delete_after=20
-            )
+        # if skips_remaining <= 0:
+        player.skip()  # check autopause stuff here
+        # @TheerapakG: Check for pausing state in the player.py make more sense
+        return Response(
+            self.str.get('cmd-skip-reply-skipped-1', 'Your skip for `{0}` was acknowledged.\nThe vote to skip has been passed.{1}').format(
+                current_entry.title,
+                self.str.get('cmd-skip-reply-skipped-2', ' Next song coming up!') if player.playlist.peek() else ''
+            ),
+            reply=True,
+            delete_after=20
+        )
 
-        else:
-            # TODO: When a song gets skipped, delete the old x needed to skip messages
-            return Response(
-                self.str.get('cmd-skip-reply-voted-1', 'Your skip for `{0}` was acknowledged.\n**{1}** more {2} required to vote to skip this song.').format(
-                    current_entry.title,
-                    skips_remaining,
-                    self.str.get('cmd-skip-reply-voted-2', 'person is') if skips_remaining == 1 else self.str.get('cmd-skip-reply-voted-3', 'people are')
-                ),
-                reply=True,
-                delete_after=20
-            )
+        # else:
+        #     # TODO: When a song gets skipped, delete the old x needed to skip messages
+        #     return Response(
+        #         self.str.get('cmd-skip-reply-voted-1', 'Your skip for `{0}` was acknowledged.\n**{1}** more {2} required to vote to skip this song.').format(
+        #             current_entry.title,
+        #             skips_remaining,
+        #             self.str.get('cmd-skip-reply-voted-2', 'person is') if skips_remaining == 1 else self.str.get('cmd-skip-reply-voted-3', 'people are')
+        #         ),
+        #         reply=True,
+        #         delete_after=20
+        #     )
 
     async def cmd_volume(self, message, player, new_volume=None):
         """
