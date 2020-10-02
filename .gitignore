@@ -2,7 +2,10 @@
 *.pyc
 ~*/
 .vscode/
+
 .env
+venv/
+.DS_Store
 
 audio_cache/
 dectalk/

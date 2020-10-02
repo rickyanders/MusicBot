@@ -10,12 +10,11 @@ COPY config/example_autoplaylist.txt config/autoplaylist.txt
 
 # Install build tools
 RUN apt-get update
-RUN apt-get install build-essential unzip -y
-RUN apt-get install software-properties-common -y
 
 # Install system dependencies
-RUN apt-get install -y git ffmpeg libopus-dev libffi-dev libsodium-dev python3-pip
-RUN apt-get upgrade -y
+RUN apt-get install -y ffmpeg libopus-dev libffi-dev libsodium-dev python3-pip
+
+RUN apt-get clean
 
 # Install Python dependencies
 RUN python -m pip install -U pip

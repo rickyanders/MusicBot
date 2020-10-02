@@ -47,7 +47,7 @@ load_opus_lib()
 
 log = logging.getLogger(__name__)
 
-RANDOM_LIST = []
+RANDOM_LIST = ['Fortnite', 'Paladins', 'Monster Hunter', 'Rogue Company', 'Spellbreaker', 'AoV']
 
 
 class MusicBot(discord.Client):
@@ -56,8 +56,6 @@ class MusicBot(discord.Client):
             sys.stdout.write("\x1b]2;MusicBot {}\x07".format(BOTVERSION))
         except:
             pass
-
-        print()
 
         if config_file is None:
             config_file = ConfigDefaults.options_file
@@ -1116,8 +1114,8 @@ class MusicBot(discord.Client):
         """Provides a basic template for embeds"""
         e = discord.Embed()
         e.colour = 7506394
-        e.set_footer(text='Just-Some-Bots/MusicBot ({})'.format(BOTVERSION), icon_url='https://i.imgur.com/gFHBoZA.png')
-        e.set_author(name=self.user.name, url='https://github.com/Just-Some-Bots/MusicBot', icon_url=self.user.avatar_url)
+        e.set_footer(text='rickyanders/MusicBot ({})'.format(BOTVERSION), icon_url='https://i.imgur.com/gFHBoZA.png')
+        e.set_author(name=self.user.name, url='https://github.com/rickyanders/MusicBot', icon_url=self.user.avatar_url)
         return e
 
     async def cmd_setlist(self, message, channel):
@@ -1183,7 +1181,7 @@ class MusicBot(discord.Client):
         """
         if len(RANDOM_LIST) == 0:
             return Response('You have an empty list', delete_after=35)
-        return Response('You got: ' + random.choice(RANDOM_LIST) , delete_after=180)
+        return Response('The result is: ' + random.choice(RANDOM_LIST))
 
     async def cmd_resetplaylist(self, player, channel):
         """
