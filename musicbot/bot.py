@@ -47,8 +47,16 @@ load_opus_lib()
 
 log = logging.getLogger(__name__)
 
-RANDOM_LIST = ['Fortnite', 'Paladins', 'Monster Hunter', 'Rogue Company', 'Spellbreaker', 'AoV']
+RANDOM_LIST = [
+                'Fortnite',
+                'Paladins',
+                'Monster Hunter',
+                'Rogue Company',
+                'Spellbreaker',
+                'AoV'
+            ]
 
+MY_PLAYLIST = 'https://www.youtube.com/playlist?list=PLzRZP9ZCw6LBo6yofD7H-Sy_XIoYPP6zI'
 
 class MusicBot(discord.Client):
     def __init__(self, config_file=None, perms_file=None, aliases_file=None):
@@ -2157,21 +2165,6 @@ class MusicBot(discord.Client):
             else:
                 raise exceptions.PermissionsError(self.str.get('cmd-skip-force-noperms', 'You do not have permission to force skip.'), expire_in=30)
 
-        # TODO: ignore person if they're deaf or take them out of the list or something?
-        # Currently is recounted if they vote, deafen, then vote
-
-        # num_voice = sum(1 for m in voice_channel.members if not (
-        #     m.voice.deaf or m.voice.self_deaf or m == self.user))
-        # if num_voice == 0: num_voice = 1 # incase all users are deafened, to avoid divison by zero
-
-        # num_skips = player.skip_state.add_skipper(author.id, message)
-
-        # skips_remaining = min(
-        #     self.config.skips_required,
-        #     math.ceil(self.config.skip_ratio_required / (1 / num_voice))  # Number of skips from config ratio
-        # ) - num_skips
-
-        # if skips_remaining <= 0:
         player.skip()  # check autopause stuff here
         # @TheerapakG: Check for pausing state in the player.py make more sense
         return Response(
@@ -2182,18 +2175,6 @@ class MusicBot(discord.Client):
             reply=True,
             delete_after=20
         )
-
-        # else:
-        #     # TODO: When a song gets skipped, delete the old x needed to skip messages
-        #     return Response(
-        #         self.str.get('cmd-skip-reply-voted-1', 'Your skip for `{0}` was acknowledged.\n**{1}** more {2} required to vote to skip this song.').format(
-        #             current_entry.title,
-        #             skips_remaining,
-        #             self.str.get('cmd-skip-reply-voted-2', 'person is') if skips_remaining == 1 else self.str.get('cmd-skip-reply-voted-3', 'people are')
-        #         ),
-        #         reply=True,
-        #         delete_after=20
-        #     )
 
     async def cmd_volume(self, message, player, new_volume=None):
         """
@@ -2420,6 +2401,68 @@ class MusicBot(discord.Client):
             await author.send("Here's the playlist dump for <%s>" % song_url, file=discord.File(fcontent, filename='playlist.txt'))
 
         return Response("Sent a message with a playlist file.", delete_after=20)
+
+    async def cmd_savepl(self, channel, author, song_url):
+        """
+        Usage:
+            {command_prefix}savepl url
+
+        Save playlist and add individual urls into autoplaylist
+        """
+        try:
+            info = await self.downloader.extract_info(self.loop, song_url.strip('<>'), download=False, process=False)
+        except Exception as e:
+            raise exceptions.CommandError("Could not extract info from input url\n%s\n" % e, expire_in=25)
+
+        if not info:
+            raise exceptions.CommandError("Could not extract info from input url, no data.", expire_in=25)
+
+        if not info.get('entries', None):
+            # TODO: Retarded playlist checking
+            # set(url, webpageurl).difference(set(url))
+
+            if info.get('url', None) != info.get('webpage_url', info.get('url', None)):
+                raise exceptions.CommandError("This does not seem to be a playlist.", expire_in=25)
+            else:
+                return await self.cmd_pldump(channel, info.get(''))
+
+        linegens = defaultdict(lambda: None, **{
+            "youtube":    lambda d: 'https://www.youtube.com/watch?v=%s' % d['id'],
+            "soundcloud": lambda d: d['url'],
+            "bandcamp":   lambda d: d['url']
+        })
+
+        exfunc = linegens[info['extractor'].split(':')[0]]
+
+        if not exfunc:
+            raise exceptions.CommandError("Could not extract info from input url, unsupported playlist type.", expire_in=25)
+
+        new_playlist = []
+        for item in info['entries']:
+            new_playlist.append(exfunc(item))
+
+        self.autoplaylist = new_playlist
+        write_file(self.config.auto_playlist_file, self.autoplaylist)
+
+        return Response('Successfully process playlist ' + song_url)
+
+    async def cmd_playmypl(self, player, channel, author):
+        """
+        Usage:
+            {command_prefix}playmypl
+
+        Automatically add my playlist to autoplaylist
+        """
+        await self.cmd_savepl(channel, author, MY_PLAYLIST)
+
+        # considering bot will start with empty autoplaylist
+        if self.config.auto_playlist == False:
+            await self.cmd_option(player, 'autoplaylist', 'on')
+
+        if player.is_stopped:
+            player.play()
+
+        return Response('Successfully process playlist ' + MY_PLAYLIST)
 
     async def cmd_listids(self, guild, author, leftover_args, cat='all'):
         """

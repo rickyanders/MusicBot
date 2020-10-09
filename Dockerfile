@@ -4,6 +4,7 @@ FROM python:3.6.10-slim-buster
 WORKDIR /usr/src/musicbot
 COPY . ./
 
+COPY config/example_aliases.json config/aliases.json
 COPY config/example_options.ini config/options.ini
 COPY config/example_permissions.ini config/permissions.ini
 COPY config/example_autoplaylist.txt config/autoplaylist.txt
