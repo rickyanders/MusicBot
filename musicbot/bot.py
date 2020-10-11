@@ -2219,7 +2219,7 @@ class MusicBot(discord.Client):
                 raise exceptions.CommandError(
                     self.str.get('cmd-volume-unreasonable-absolute', 'Unreasonable volume provided: {}%. Provide a value between 1 and 100.').format(new_volume), expire_in=20)
 
-    @owner_only
+    # @owner_only
     async def cmd_option(self, player, option, value):
         """
         Usage:
